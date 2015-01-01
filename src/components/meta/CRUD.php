@@ -8,8 +8,8 @@
 
 namespace src\components\meta;
 
+use app\includes\JsonIO;
 use src\components\db\DB_Conn;
-use src\components\utils\JsonIO;
 
 abstract class CRUD
 {

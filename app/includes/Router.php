@@ -9,7 +9,6 @@
 namespace app\includes;
 
 use Exception;
-use src\components\utils\JsonIO;
 
 class Router
 {
@@ -56,15 +55,15 @@ class Router
             $fully_qualified_name = "src\\components\\" . $component . "\\" . $controller;
             if (class_exists($fully_qualified_name)) {
                 if (method_exists($fully_qualified_name, $method)) {
-                    echo(call_user_func_array(array($fully_qualified_name, $method), array($params, $_FILES, $_COOKIE, $_SERVER)));
+                    return call_user_func_array(array($fully_qualified_name, $method), array($params, $_FILES, $_COOKIE, $_SERVER));
                 } else {
-                    JsonIO::emit("Method Doesn't Exist " . $method);
+                    return JsonIO::emit("Method Doesn't Exist " . $method);
                 }
             } else {
-                JsonIO::emit("Class Doesn't Exist " . $controller);
+                return JsonIO::emit("Class Doesn't Exist " . $controller);
             }
         } else {
-            JsonIO::emit("File Doesn't Exist " . $classPath);
+            return JsonIO::emit("File Doesn't Exist " . $classPath);
         }
     }
 

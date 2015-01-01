@@ -6,11 +6,13 @@
  * Time: 12:43 PM
  */
 
-namespace src\components\utils;
+namespace app\includes;
 
 
 class JsonIO
 {
+    const BAD_REQUEST = 400;
+
     public static function emit($data, $error = NULL)
     {
 
@@ -34,8 +36,8 @@ class JsonIO
         }
     }
 
-    public static function emitError($error)
+    public static function emitError($error, $code = 400, $detail = NULL)
     {
-        return json_encode(array('error' => $error));
+        return json_encode(array('errCode' => $code, 'error' => $error, "detail" => $detail));
     }
 } 

@@ -9,19 +9,13 @@
 namespace src\components\meta;
 
 use app\config\Config;
+use app\includes\JsonIO;
 use Doctrine\DBAL\Platforms\MySqlPlatform;
 use Doctrine\DBAL\Schema\Schema;
 use src\components\db\DB_Conn;
-use src\components\utils\JsonIO;
 
 class Form_CRUD extends CRUD
 {
-
-    private static function setTableParams()
-    {
-        CRUD::$_table = Config::$tables['FORM_LIST'];
-        CRUD::$_alias = 'FL';
-    }
 
     public static function read($params)
     {
@@ -30,12 +24,17 @@ class Form_CRUD extends CRUD
 
     }
 
+    private static function setTableParams()
+    {
+        CRUD::$_table = Config::$tables['FORM_LIST'];
+        CRUD::$_alias = 'FL';
+    }
+
     public static function create($params)
     {
         Form_CRUD::setTableParams();
         if (!isset($params['form_elements'])) {
             return JsonIO::emitError("Error! Parameters don't contain form elements");
-
         }
 
         if (!isset($params['form_name'])) {
@@ -48,6 +47,9 @@ class Form_CRUD extends CRUD
             $elements = $params['form_elements'];
             foreach ($elements as $key => $element) {
                 $elements[$key]['schema'] = JsonIO::receive(Form_ELEMENTS_CRUD::read(array("id" => $element['id'])));
+                if ($elements[$key]['schema'] === array()) {
+                    return JsonIO::emitError("Invalid Form Element. Id " . $element['id']);
+                }
             }
 
             /*Create all multivalued tables */
@@ -64,13 +66,16 @@ class Form_CRUD extends CRUD
                     $multi_valued_tbl->setPrimaryKey(array("id"));
                     $multi_valued_tbl->addColumn("value", "string", array("length" => 255));
                     $queries = $schema->toSql(new MySqlPlatform());
-                    $db->executeQuery($queries[0]);
-
+                    try {
+                        $db->query($queries[0]);
+                    } catch (\Exception $e) {
+                        $db->rollback();
+                        $err = $e->getTrace()[0]['args'][0]->errorInfo;
+                        return JsonIO::emitError("SQL Exception when creating table " . $multi_valued_tbl->getName(), $err[1], $err[2]);
+                    }
 
                     foreach ($element['multi_values'] as $value) {
                         $db->insert($element['foreign_table'], array("value" => $value));
-
-
                     }
 
                     if (isset($element['many_to_many']) && $element['many_to_many'] == 1) {
@@ -83,7 +88,13 @@ class Form_CRUD extends CRUD
                         $join_tbl->addColumn("value_id", "integer", array("unsigned" => true));
                         $join_tbl->addColumn("form_instance_id", "integer", array("unsigned" => true));
                         $queries = $schema->toSql(new MySqlPlatform());
-                        $db->executeQuery($queries[0]);
+                        try {
+                            $db->query($queries[0]);
+                        } catch (\Exception $e) {
+                            $db->rollback();
+                            $err = $e->getTrace()[0]['args'][0]->errorInfo;
+                            return JsonIO::emitError("SQL Exception when creating table " . $join_tbl->getName(), $err[1], $err[2]);
+                        }
 
                     }
                 }
@@ -93,7 +104,7 @@ class Form_CRUD extends CRUD
             /* Creating the Form-Data-Instance table*/
             $schema = new Schema();
             $data_instance_tbl = $schema->createTable(Config::$tablePrefix['DATA_INSTANCE'] . preg_replace('/\s+/', '_', $params['form_name']));
-            $data_instance_tbl->addColumn("id", "integer", array("unsigned" => true));
+            $data_instance_tbl->addColumn("id", "integer", array("unsigned" => true, "autoincrement" => true));
             $data_instance_tbl->setPrimaryKey(array("id"));
 
 
@@ -110,7 +121,13 @@ class Form_CRUD extends CRUD
                 //TODO - For multi-valued fields add foreign key constraints
             }
             $queries = $schema->toSql(new MySqlPlatform());
-            $db->executeQuery($queries[0]);
+            try {
+                $db->query($queries[0]);
+            } catch (\Exception $e) {
+                $db->rollback();
+                $err = $e->getTrace()[0]['args'][0]->errorInfo;
+                return JsonIO::emitError("SQL Exception when creating table " . $data_instance_tbl->getName(), $err[1], $err[2]);
+            }
 
 
             /*Creating the Form-Schema-Instance function*/
@@ -127,7 +144,13 @@ class Form_CRUD extends CRUD
             $schema_instance_tbl->addColumn("max", "integer", array("notnull" => false));
             $queries = $schema->toSql(new MySqlPlatform());
 
-            $db->executeQuery($queries[0]);
+            try {
+                $db->query($queries[0]);
+            } catch (\Exception $e) {
+                $db->rollback();
+                $err = $e->getTrace()[0]['args'][0]->errorInfo;
+                return JsonIO::emitError("SQL Exception when creating table " . $schema_instance_tbl->getName(), $err[1], $err[2]);
+            }
 
             /* Insert data into Form-Schema-Instance*/
             foreach ($elements as $element) {
@@ -139,8 +162,14 @@ class Form_CRUD extends CRUD
                 $values['label'] = $element['label'];
                 $values['min'] = (isset($element['min']) ? $element['min'] : -1);
                 $values['max'] = (isset($element['max']) ? $element['max'] : -1);
+                try {
+                    $db->insert(Config::$tablePrefix['SCHEMA_INSTANCE'] . preg_replace('/\s+/', '_', $params['form_name']), $values);
+                } catch (\Exception $e) {
+                    $db->rollback();
+                    $err = $e->getTrace()[0]['args'][0]->errorInfo;
+                    return JsonIO::emitError("SQL Exception when inserting into table " . Config::$tablePrefix['SCHEMA_INSTANCE'] . preg_replace('/\s+/', '_', $params['form_name']), $err[1], $err[2]);
+                }
 
-                $db->insert(Config::$tablePrefix['SCHEMA_INSTANCE'] . preg_replace('/\s+/', '_', $params['form_name']), $values);
             }
 
             /* Create Form-Views Table */
@@ -151,15 +180,29 @@ class Form_CRUD extends CRUD
             $view_tbl->addColumn("name", "string", array("length" => 255));
             $view_tbl->addColumn("view_table", "string", array("length" => 255));
             $queries = $schema->toSql(new MySqlPlatform());
-            $db->executeQuery($queries[0]);
+            try {
+                $db->query($queries[0]);
+            } catch (\Exception $e) {
+                $db->rollback();
+                $err = $e->getTrace()[0]['args'][0]->errorInfo;
+                return JsonIO::emitError("SQL Exception when creating table " . $view_tbl->getName(), $err[1], $err[2]);
+            }
 
             /*Add to Form-List Table */
-            $db->insert(Config::$tables['FORM_LIST'], array("name" => preg_replace('/\s+/', '_', $params['form_name'])));
+            try {
+                $db->insert(Config::$tables['FORM_LIST'], array("name" => preg_replace('/\s+/', '_', $params['form_name'])));
+            } catch (\Exception $e) {
+                $db->rollback();
+                $err = $e->getTrace()[0]['args'][0]->errorInfo;
+                return JsonIO::emitError("SQL Exception when inserting into table " . Config::$tables['FORM_LIST'], $err[1], $err[2]);
+            }
+
             $db->commit();
             return JsonIO::emit("Completed!");
 
-        } catch (\PDOException $e) {
+        } catch (Exception $e) {
             $db->rollback();
+            return JsonIO::emitError("Error Creating Form: " . $params['form_name'], JsonIO::BAD_REQUEST, $e->getMessage());
         }
 
 

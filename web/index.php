@@ -11,4 +11,4 @@ define('WEB_ROOT', getcwd());
 use app\includes\Router;
 
 $router = new Router();
-$router->match();
+echo($router->match());
