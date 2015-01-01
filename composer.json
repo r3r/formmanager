@@ -1,0 +1,21 @@
+{
+    "name": "r3r/form_manager",
+    "description": "PHP Form Manager",
+    "minimum-stability": "stable",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Ritesh Reddy",
+            "email": "ritesh_r_reddy@hotmail.com"
+        }
+    ],
+    "require": {
+        "doctrine/dbal": "2.3.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "app\\": "app/",
+            "src\\": "src/"
+        }
+    }
+}
