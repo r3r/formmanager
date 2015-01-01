@@ -49,6 +49,10 @@ class Router
             }
         }
 
+        if (strpos($method, "?") != FALSE) { //Deal with trailing '?'
+            $method = substr($method, 0, strpos($method, "?"));
+        }
+
         $classPath = WEB_ROOT . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "src" . DIRECTORY_SEPARATOR . "components" . DIRECTORY_SEPARATOR . $component . DIRECTORY_SEPARATOR . $controller . ".php";
         if (file_exists($classPath)) {
             require_once($classPath);
