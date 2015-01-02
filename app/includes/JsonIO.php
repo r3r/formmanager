@@ -17,10 +17,15 @@ class JsonIO
     {
 
         $out = array("data" => $data);
-        return json_encode($out);
+        return json_encode($out, JSON_HEX_QUOT);
 
     }
 
+    public static function json_decode_array($input)
+    {
+        $from_json = json_decode($input, true);
+        return $from_json ? $from_json : $input;
+    }
 
     public static function receive($json)
     {
