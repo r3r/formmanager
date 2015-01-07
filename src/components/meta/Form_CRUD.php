@@ -10,6 +10,7 @@ namespace src\components\meta;
 
 use app\config\Config;
 use app\includes\JsonIO;
+use Doctrine\DBAL\Driver\PDOException;
 use Doctrine\DBAL\Platforms\MySqlPlatform;
 use Doctrine\DBAL\Schema\Comparator;
 use Doctrine\DBAL\Schema\Schema;
@@ -61,8 +62,15 @@ class Form_CRUD extends CRUD
                 $db->insert(Config::$tables['FORM_LIST'], array("name" => preg_replace('/\s+/', '_', $params['form_name'])));
             } catch (\Exception $e) {
                 $db->rollback();
-                $err = $e->getTrace()[0]['args'][0]->errorInfo;
+                $err = array(1 => -1, 2 => "Unknown details");
+                foreach ($e->getTrace()[0]['args'] as $eElement) {
+                    if ($eElement instanceof PDOException) {
+                        $err = $eElement->errorInfo;
+                        break;
+                    }
+                }
                 return JsonIO::emitError("SQL Exception when inserting into table " . Config::$tables['FORM_LIST'], $err[1], $err[2]);
+
             }
 
             /*Create all multivalued tables */
@@ -86,7 +94,13 @@ class Form_CRUD extends CRUD
                         $db->query($queries[1]);
                     } catch (\Exception $e) {
                         $db->rollback();
-                        $err = $e->getTrace()[0]['args'][0]->errorInfo;
+                        $err = array(1 => -1, 2 => "Unknown details");
+                        foreach ($e->getTrace()[0]['args'] as $eElement) {
+                            if ($eElement instanceof PDOException) {
+                                $err = $eElement->errorInfo;
+                                break;
+                            }
+                        }
                         return JsonIO::emitError("SQL Exception when creating table " . $multi_valued_tbl->getName(), $err[1], $err[2]);
                     }
 
@@ -95,7 +109,13 @@ class Form_CRUD extends CRUD
                             $db->insert($element['foreign_table'], array("value" => $value));
                         } catch (\Exception $e) {
                             $db->rollback();
-                            $err = $e->getTrace()[0]['args'][0]->errorInfo;
+                            $err = array(1 => -1, 2 => "Unknown details");
+                            foreach ($e->getTrace()[0]['args'] as $eElement) {
+                                if ($eElement instanceof PDOException) {
+                                    $err = $eElement->errorInfo;
+                                    break;
+                                }
+                            }
                             return JsonIO::emitError("SQL Exception when inserting into table " . $multi_valued_tbl->getName(), $err[1], $err[2]);
                         }
                     }
@@ -114,7 +134,13 @@ class Form_CRUD extends CRUD
                             $db->query($queries[0]);
                         } catch (\Exception $e) {
                             $db->rollback();
-                            $err = $e->getTrace()[0]['args'][0]->errorInfo;
+                            $err = array(1 => -1, 2 => "Unknown details");
+                            foreach ($e->getTrace()[0]['args'] as $eElement) {
+                                if ($eElement instanceof PDOException) {
+                                    $err = $eElement->errorInfo;
+                                    break;
+                                }
+                            }
                             return JsonIO::emitError("SQL Exception when creating table " . $join_tbl->getName(), $err[1], $err[2]);
                         }
 
@@ -146,7 +172,13 @@ class Form_CRUD extends CRUD
                 $db->query($queries[0]);
             } catch (\Exception $e) {
                 $db->rollback();
-                $err = $e->getTrace()[0]['args'][0]->errorInfo;
+                $err = array(1 => -1, 2 => "Unknown details");
+                foreach ($e->getTrace()[0]['args'] as $eElement) {
+                    if ($eElement instanceof PDOException) {
+                        $err = $eElement->errorInfo;
+                        break;
+                    }
+                }
                 return JsonIO::emitError("SQL Exception when creating table " . $data_instance_tbl->getName(), $err[1], $err[2]);
             }
 
@@ -170,7 +202,13 @@ class Form_CRUD extends CRUD
                 $db->query($queries[0]);
             } catch (\Exception $e) {
                 $db->rollback();
-                $err = $e->getTrace()[0]['args'][0]->errorInfo;
+                $err = array(1 => -1, 2 => "Unknown details");
+                foreach ($e->getTrace()[0]['args'] as $eElement) {
+                    if ($eElement instanceof PDOException) {
+                        $err = $eElement->errorInfo;
+                        break;
+                    }
+                }
                 return JsonIO::emitError("SQL Exception when creating table " . $schema_instance_tbl->getName(), $err[1], $err[2]);
             }
 
@@ -189,7 +227,13 @@ class Form_CRUD extends CRUD
                     $db->insert(Namer::getSchemaInstanceTblName($params['form_name']), $values);
                 } catch (\Exception $e) {
                     $db->rollback();
-                    $err = $e->getTrace()[0]['args'][0]->errorInfo;
+                    $err = array(1 => -1, 2 => "Unknown details");
+                    foreach ($e->getTrace()[0]['args'] as $eElement) {
+                        if ($eElement instanceof PDOException) {
+                            $err = $eElement->errorInfo;
+                            break;
+                        }
+                    }
                     return JsonIO::emitError("SQL Exception when inserting into table " . (Namer::getSchemaInstanceTblName($params['form_name'])));
                 }
 
@@ -207,7 +251,13 @@ class Form_CRUD extends CRUD
                 $db->query($queries[0]);
             } catch (\Exception $e) {
                 $db->rollback();
-                $err = $e->getTrace()[0]['args'][0]->errorInfo;
+                $err = array(1 => -1, 2 => "Unknown details");
+                foreach ($e->getTrace()[0]['args'] as $eElement) {
+                    if ($eElement instanceof PDOException) {
+                        $err = $eElement->errorInfo;
+                        break;
+                    }
+                }
                 return JsonIO::emitError("SQL Exception when creating table " . $view_tbl->getName(), $err[1], $err[2]);
             }
 
@@ -286,7 +336,13 @@ class Form_CRUD extends CRUD
                             }
 
                         } catch (\Exception $e) {
-                            $err = $e->getTrace()[0]['args'][0]->errorInfo;
+                            $err = array(1 => -1, 2 => "Unknown details");
+                            foreach ($e->getTrace()[0]['args'] as $eElement) {
+                                if ($eElement instanceof PDOException) {
+                                    $err = $eElement->errorInfo;
+                                    break;
+                                }
+                            }
                             if ($err[1] == 1062) {
                                 continue; //If there are repeated values, just ignore the errors
                             }
@@ -375,7 +431,13 @@ class Form_CRUD extends CRUD
                     $out[] = $db->query($query);
                 } catch (\Exception $e) {
                     $db->rollback();
-                    $err = $e->getTrace()[0]['args'][0]->errorInfo;
+                    $err = array(1 => -1, 2 => "Unknown details");
+                    foreach ($e->getTrace()[0]['args'] as $eElement) {
+                        if ($eElement instanceof PDOException) {
+                            $err = $eElement->errorInfo;
+                            break;
+                        }
+                    }
                     return JsonIO::emitError("SQL Exception when updating table " . $data_instance_tbl->getName(), $err[1], $err[2]);
                 }
             }
@@ -404,7 +466,13 @@ class Form_CRUD extends CRUD
                     }
                 } catch (\Exception $e) {
                     $db->rollback();
-                    $err = $e->getTrace()[0]['args'][0]->errorInfo;
+                    $err = array(1 => -1, 2 => "Unknown details");
+                    foreach ($e->getTrace()[0]['args'] as $eElement) {
+                        if ($eElement instanceof PDOException) {
+                            $err = $eElement->errorInfo;
+                            break;
+                        }
+                    }
                     return JsonIO::emitError("SQL Exception when inserting into table " . (Namer::getSchemaInstanceTblName($params['form_name'])));
                 }
 
@@ -467,7 +535,13 @@ class Form_CRUD extends CRUD
                     $db->query($s);
                 } catch (\Exception $e) {
                     $db->rollback();
-                    $err = $e->getTrace()[0]['args'][0]->errorInfo;
+                    $err = array(1 => -1, 2 => "Unknown details");
+                    foreach ($e->getTrace()[0]['args'] as $eElement) {
+                        if ($eElement instanceof PDOException) {
+                            $err = $eElement->errorInfo;
+                            break;
+                        }
+                    }
                     return JsonIO::emitError("SQL Exception when deleting tables ", $err[1], $err[2]);
                 }
             }
@@ -477,7 +551,13 @@ class Form_CRUD extends CRUD
                 $db->delete(Config::$tables['FORM_LIST'], array("id" => $params['form_id']));
             } catch (\Exception $e) {
                 $db->rollback();
-                $err = $e->getTrace()[0]['args'][0]->errorInfo;
+                $err = array(1 => -1, 2 => "Unknown details");
+                foreach ($e->getTrace()[0]['args'] as $eElement) {
+                    if ($eElement instanceof PDOException) {
+                        $err = $eElement->errorInfo;
+                        break;
+                    }
+                }
                 return JsonIO::emitError("SQL Exception when deleting entry in  " . Config::$tables['FORM_LIST'], $err[1], $err[2]);
             }
 

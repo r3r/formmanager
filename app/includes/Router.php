@@ -8,32 +8,35 @@
 
 namespace app\includes;
 
-use Exception;
-
 class Router
 {
     public static $additionalRoutes = NULL;
 
     public function match()
     {
-        $request_uri = explode("/", $_SERVER['REQUEST_URI']);
+
+
+        $request_method = $_SERVER['REQUEST_METHOD'];
+        $request_uri = explode("/", $_SERVER['REDIRECT_URL']); //Get request url with leading slash removed.
         $script = explode("/", $_SERVER['SCRIPT_NAME']);
+
         array_pop($script); #remove filename from script path
-        for ($i = 0; $i < count($script); $i++) { #remove the script base path from request_uri
+        for ($i = 0; $i < count($script); $i++) { #remove the index.php script base path from request_uri
             array_shift($request_uri);
         }
-        if (end($request_uri) == "") { #handle trailing slash
+
+        if (end($request_uri) == "") { #handle trailing slash or parameters
             array_pop($request_uri);
         }
 
-        if (count($request_uri) < 3) {
-            throw new Exception("No route available: Missing Component/Controller/Method in route");
+
+        if (count($request_uri) < 2) {
+            return JsonIO::emitError("No route available: Missing Component/Controller/Method in route", 404, json_encode($_SERVER['REQUEST_URI']));
         }
 
         $component = $request_uri[0];
         $controller = $request_uri[1];
-        $method = $request_uri[2];
-        array_shift($request_uri);
+
         array_shift($request_uri);
         array_shift($request_uri); #remove route from request_uri leaving only parameters
 
@@ -49,8 +52,22 @@ class Router
             }
         }
 
-        if (strpos($method, "?") != FALSE) { //Deal with trailing '?'
-            $method = substr($method, 0, strpos($method, "?"));
+        switch ($request_method) {
+            case 'GET' :
+                $method = 'read';
+                break;
+            case 'POST' :
+                $method = 'create';
+                break;
+            case 'PUT' :
+                $method = 'update';
+                break;
+            case 'DELETE' :
+                $method = 'delete';
+                break;
+            default:
+                $method = 'read';
+                break;
         }
 
         $classPath = WEB_ROOT . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "src" . DIRECTORY_SEPARATOR . "components" . DIRECTORY_SEPARATOR . $component . DIRECTORY_SEPARATOR . $controller . ".php";
@@ -61,13 +78,13 @@ class Router
                 if (method_exists($fully_qualified_name, $method)) {
                     return call_user_func_array(array($fully_qualified_name, $method), array($params, $_FILES, $_COOKIE, $_SERVER));
                 } else {
-                    return JsonIO::emit("Method Doesn't Exist " . $method);
+                    return JsonIO::emitError("Method Doesn't Exist " . $method);
                 }
             } else {
-                return JsonIO::emit("Class Doesn't Exist " . $controller);
+                return JsonIO::emitError("Class Doesn't Exist " . $controller);
             }
         } else {
-            return JsonIO::emit("File Doesn't Exist " . $classPath);
+            return JsonIO::emitError("File Doesn't Exist " . $classPath);
         }
     }
 
