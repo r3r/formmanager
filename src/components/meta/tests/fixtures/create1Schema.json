@@ -1,0 +1,29 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "id": "http://jsonschema.net",
+    "type": "object",
+    "properties": {
+        "sucCode": {
+            "id": "sucCode",
+            "type": "integer",
+            "required": true
+        },
+        "success": {
+            "id": "success",
+            "type": "string",
+            "required": true
+        },
+        "detail": {
+            "id": "detail",
+            "type": "object",
+            "properties": {
+                "id": {
+                    "id": "id",
+                    "type": "string",
+                    "required": true
+                }
+            },
+            "required": true
+        }
+    }
+}

@@ -42,4 +42,12 @@ class Namer
         return $prefix . preg_replace('/\s+/', '_', $form_name);
     }
 
+    public static function sanitize($name)
+    {
+        $name = preg_replace('/\s+/', '_', $name); //remove spaces
+        $name = preg_replace('/[^a-zA-Z0-9]+/', '_', $name); //replace all non alphanumerics with a _
+        $name = strtolower($name);
+        return $name;
+    }
+
 } 

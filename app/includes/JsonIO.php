@@ -42,7 +42,12 @@ class JsonIO
         }
     }
 
-    public static function emitError($error, $code = 400, $detail = NULL)
+    public static function emitSuccess($success, $detail = NULL, $code = 200)
+    {
+        return json_encode(array('sucCode' => $code, 'success' => $success, "detail" => $detail));
+    }
+
+    public static function emitError($error, $detail = NULL, $code = 400)
     {
         return json_encode(array('errCode' => $code, 'error' => $error, "detail" => $detail));
     }

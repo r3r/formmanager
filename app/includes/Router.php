@@ -31,7 +31,7 @@ class Router
 
 
         if (count($request_uri) < 2) {
-            return JsonIO::emitError("No route available: Missing Component/Controller/Method in route", 404, json_encode($_SERVER['REQUEST_URI']));
+            return JsonIO::emitError("No route available: Missing Component/Controller/Method in route", json_encode($_SERVER['REQUEST_URI']), 404);
         }
 
         $component = $request_uri[0];

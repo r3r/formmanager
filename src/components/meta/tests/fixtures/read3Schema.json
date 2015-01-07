@@ -1,0 +1,35 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+        "data": {
+            "id": "data",
+            "type": "array",
+            "additionalItems": false,
+            "maxItems": 0,
+            "minItems": 0,
+            "items": {
+                "id": "0",
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "id": "id",
+                        "type": ["string", "number"],
+                        "required": true
+
+                    },
+                    "name": {
+                        "id": "name",
+                        "type": "string",
+                        "required": true
+                    },
+                    "table_prefix": {
+                        "id": "table_prefix",
+                        "type": "string"
+                    }
+
+                }
+            }
+        }
+    }
+}
