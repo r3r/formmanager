@@ -1,35 +1,56 @@
 {
+    "_comment": "Successful Read of Form List Data Given Multiple IDs",
     "$schema": "http://json-schema.org/draft-04/schema#",
+    "id": "/",
     "type": "object",
+    "additionalProperties": false,
     "properties": {
+        "responseCode": {
+            "id": "responseCode",
+            "type": "integer",
+            "default": 200
+        },
         "data": {
             "id": "data",
             "type": "array",
-            "additionalItems": false,
-            "maxItems": 1,
             "minItems": 1,
+            "uniqueItems": false,
+            "additionalItems": false,
             "items": {
                 "id": "0",
                 "type": "object",
+                "additionalProperties": false,
                 "properties": {
                     "id": {
                         "id": "id",
-                        "type": ["string", "number"],
-                        "required": true
-
+                        "type": "string",
+                        "minLength": 1,
+                        "default": "1"
                     },
                     "name": {
                         "id": "name",
                         "type": "string",
-                        "required": true
+                        "minLength": 1,
+                        "default": "Test Form"
                     },
                     "table_prefix": {
                         "id": "table_prefix",
-                        "type": "string"
-                    }
-
+                        "type": "string",
+                        "default": ""
+                    },
+                    "required": [
+                        "id",
+                        "name"
+                    ]
                 }
-            }
-        }
+            },
+            "required": [
+                "0"
+            ]
+        },
+        "required": [
+            "responseCode",
+            "data"
+        ]
     }
 }

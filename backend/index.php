@@ -11,4 +11,8 @@ define('WEB_ROOT', getcwd());
 use app\includes\Router;
 
 $router = new Router();
-echo($router->match());
+$output = $router->match();
+$arr = json_decode($output, true);
+http_response_code($arr['responseCode']);
+header('Content-type: application/json');
+echo $output;

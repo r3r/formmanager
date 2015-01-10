@@ -12,11 +12,12 @@ namespace app\includes;
 class JsonIO
 {
     const BAD_REQUEST = 400;
+    const NOT_FOUND = 404;
 
-    public static function emit($data, $error = NULL)
+    public static function emitData($data, $code = 200)
     {
 
-        $out = array("data" => $data);
+        $out = array("responseCode" => $code, "data" => $data);
         return json_encode($out, JSON_HEX_QUOT);
 
     }
@@ -44,11 +45,12 @@ class JsonIO
 
     public static function emitSuccess($success, $detail = NULL, $code = 200)
     {
-        return json_encode(array('sucCode' => $code, 'success' => $success, "detail" => $detail));
+        return json_encode(array('responseCode' => $code,
+            'success' => $success, "detail" => $detail));
     }
 
     public static function emitError($error, $detail = NULL, $code = 400)
     {
-        return json_encode(array('errCode' => $code, 'error' => $error, "detail" => $detail));
+        return json_encode(array('responseCode' => $code, 'error' => $error, "detail" => $detail));
     }
 } 

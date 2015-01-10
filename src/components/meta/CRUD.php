@@ -23,8 +23,13 @@ abstract class CRUD
         if (isset($params['id'])) {
             $id = $params['id'];
         } else if (is_array($params)) {
-            if (count($params) === 1 && is_numeric(array_values($params)[0])) {
-                $id = $params[0];
+            foreach ($params as $param) {
+                if (is_numeric($param)) {
+                    if ($id == NULL) {
+                        $id = array();
+                    }
+                    $id[] = $param;
+                }
             }
         }
 
@@ -47,8 +52,18 @@ abstract class CRUD
                 ->where('id IN (:id)')
                 ->setParameter(':id', $id, \Doctrine\DBAL\Connection::PARAM_INT_ARRAY);
         }
+        $res = $qBuilder->execute()->fetchAll();
+        if (!empty($res)) {
+            return JsonIO::emitData($res);
+        } else {
+            if (!is_array($id)) {
+                $id = array($id);
+            }
+            $ids = implode(", ", $id);
+            return JsonIO::emitError("Record not found", "Id(s): " . $ids,
+                JsonIO::NOT_FOUND);
+        }
 
-        return JsonIO::emit($qBuilder->execute()->fetchAll());
     }
 
     public static function create($params)
@@ -59,7 +74,8 @@ abstract class CRUD
 
         $elementIds = $params['form_elements'];
 
-        return JsonIO::emit(Form_ELEMENTS_CRUD::read(array("id" => $elementIds)));
+        return JsonIO::emitSuccess(Form_ELEMENTS_CRUD::read(array("id" =>
+            $elementIds)));
     }
 
     public static function update($params)

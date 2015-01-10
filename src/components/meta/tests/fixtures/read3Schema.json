@@ -1,35 +1,37 @@
 {
+    "_comment": "Fail to  Read orm List Data Given Invalid ID",
     "$schema": "http://json-schema.org/draft-04/schema#",
+    "id": "/",
     "type": "object",
+    "additionalProperties": false,
     "properties": {
-        "data": {
-            "id": "data",
-            "type": "array",
-            "additionalItems": false,
-            "maxItems": 0,
-            "minItems": 0,
-            "items": {
-                "id": "0",
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "id": "id",
-                        "type": ["string", "number"],
-                        "required": true
-
-                    },
-                    "name": {
-                        "id": "name",
-                        "type": "string",
-                        "required": true
-                    },
-                    "table_prefix": {
-                        "id": "table_prefix",
-                        "type": "string"
-                    }
-
-                }
-            }
-        }
+        "responseCode": {
+            "id": "responseCode",
+            "type": "integer",
+            "enum": [
+                404
+            ]
+        },
+        "error": {
+            "id": "error",
+            "type": "string",
+            "minLength": 1,
+            "enum": [
+                "Record not found"
+            ]
+        },
+        "detail": {
+            "id": "detail",
+            "type": "string",
+            "minLength": 1,
+            "enum": [
+                "Id(s): 2"
+            ]
+        },
+        "required": [
+            "responseCode",
+            "error",
+            "detail"
+        ]
     }
 }

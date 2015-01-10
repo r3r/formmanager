@@ -1,35 +1,50 @@
 {
+    "_comment": "Successful Read of Form List Data",
     "$schema": "http://json-schema.org/draft-04/schema#",
+    "id": "/",
     "type": "object",
     "properties": {
+        "responseCode": {
+            "id": "responseCode",
+            "type": "integer"
+        },
         "data": {
             "id": "data",
             "type": "array",
-            "additionalItems": false,
-            "maxItems": 1,
-            "minItems": 1,
             "items": {
                 "id": "0",
                 "type": "object",
                 "properties": {
                     "id": {
                         "id": "id",
-                        "type": ["string", "number"],
-                        "required": true
-
+                        "type": "string",
+                        "enum": [
+                            "1"
+                        ]
                     },
                     "name": {
                         "id": "name",
-                        "type": "string",
-                        "required": true
+                        "type": "string"
                     },
                     "table_prefix": {
                         "id": "table_prefix",
                         "type": "string"
-                    }
-
-                }
-            }
-        }
-    }
+                    },
+                    "required": [
+                        "id",
+                        "name"
+                    ]
+                },
+                "additionalProperties": false
+            },
+            "required": [
+                "0"
+            ]
+        },
+        "required": [
+            "responseCode",
+            "data"
+        ]
+    },
+    "additionalProperties": false
 }

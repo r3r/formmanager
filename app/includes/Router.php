@@ -41,6 +41,7 @@ class Router
         array_shift($request_uri); #remove route from request_uri leaving only parameters
 
         $params = $_REQUEST;
+
         foreach ($request_uri as $param) {
             if (strpos($param, "?") !== FALSE) { #if ? is found, then stop extracting parameters
                 break;
@@ -69,6 +70,7 @@ class Router
                 $method = 'read';
                 break;
         }
+
 
         $classPath = WEB_ROOT . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "src" . DIRECTORY_SEPARATOR . "components" . DIRECTORY_SEPARATOR . $component . DIRECTORY_SEPARATOR . $controller . ".php";
         if (file_exists($classPath)) {
