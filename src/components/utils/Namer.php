@@ -15,31 +15,31 @@ class Namer
     public static function getDataInstanceTblName($form_name)
     {
         $prefix = Config::$tablePrefix['DATA_INSTANCE'];
-        return $prefix . preg_replace('/\s+/', '_', $form_name);
+        return $prefix . self::sanitize($form_name);
     }
 
     public static function getSchemaInstanceTblName($form_name)
     {
         $prefix = Config::$tablePrefix['SCHEMA_INSTANCE'];
-        return $prefix . preg_replace('/\s+/', '_', $form_name);
+        return $prefix . self::sanitize($form_name);
     }
 
     public static function getMultiValuedTblName($form_name, $col_name)
     {
         $prefix = Config::$tablePrefix['MULTI_VALUED'];
-        return $prefix . preg_replace('/\s+/', '_', $form_name) . "_" . preg_replace('/\s+/', '_', $col_name);
+        return $prefix . self::sanitize($form_name) . "_" . self::sanitize($col_name);
     }
 
     public static function getJoinTblName($form_name, $col_name)
     {
         $prefix = Config::$tablePrefix['JOIN_TABLE'];
-        return $prefix . preg_replace('/\s+/', '_', $form_name) . "_" . preg_replace('/\s+/', '_', $col_name);
+        return $prefix . self::sanitize($form_name) . "_" . self::sanitize($col_name);
     }
 
     public static function getViewTblName($form_name)
     {
         $prefix = Config::$tablePrefix['VIEW_TABLE'];
-        return $prefix . preg_replace('/\s+/', '_', $form_name);
+        return $prefix . self::sanitize($form_name);
     }
 
     public static function sanitize($name)

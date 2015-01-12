@@ -1,0 +1,61 @@
+<h1> {{title}} </h1>
+<div ng-hide="fetchError == null" class="alert alert-danger alert-dismissible" role="alert">
+    <button ng-click="fetchError = null" type="button" class="close" aria-label="Close"><span
+            aria-hidden="true">&times;</span></button>
+    {{fetchError}}
+</div>
+
+<form name="createForm">
+    <div class="form-group">
+        <br/>
+        <label class="sr-only" for="form_name">Email address</label>
+        <input type="text" ng-model="form_name" id="form_name" placeholder="Form Name" required="required">
+    </div>
+    <br/>
+
+    <h3>Form Elements</h3>
+    <table class="table table-striped  table-hover table-condensed">
+        <thead>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Length</th>
+        <th>Values</th>
+        <th>Multiple Choices?</th>
+        <th>Controls</th>
+        </thead>
+        <tr ng-repeat="instance in elementInstances">
+            <td><input type="text" ng-model="instance.name" required="required"></td>
+            <td>{{instance.type.name}}</td>
+            <td><input type="number" ng-model="instance.options.length"></td>
+            <td><span ng-show="instance.type.multi_valued == '1'"><textarea ng-model="instance.multi_values" rows="3"
+                                                                            cols="40"></textarea> </span></td>
+            <td><span ng-show="instance.type.multi_valued == '1'"><input type="radio"
+                                                                         ng-model="instance.options.many_to_many"
+                                                                         ng-value="1">Yes<br/><input type="radio"
+                                                                                                     ng-model="instance.options.many_to_many"
+                                                                                                     selected
+                                                                                                     ng-value="0">No </span>
+            </td>
+            <td>
+                <button class="btn btn-danger" ng-click="remove(instance)"><span class="glyphicon glyphicon-remove"
+                                                                                 aria-hidden="true"></span></button>
+            </td>
+        </tr>
+
+    </table>
+    <button type="submit" class="btn btn-primary" ng-click="submit(form_name, elementInstances)"
+            ng-disabled="createForm.$invalid || elementInstances.length == 0">Create the Form!
+    </button>
+</form>
+<br/>
+<br/>
+
+<form class="form-inline">
+    <div class="form-group">
+        <label class="sr-only" for="elementTypes">Email address</label>
+        <select class="form-control" id="elementTypes" ng-model="elementType"
+                ng-options="eType as eType.name for eType in elementTypes">
+        </select>
+    </div>
+    <button class="btn btn-primary" ng-click="add(elementType)">Add a field!</button>
+</form>

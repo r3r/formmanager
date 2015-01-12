@@ -15,7 +15,6 @@ class Router
     public function match()
     {
 
-
         $request_method = $_SERVER['REQUEST_METHOD'];
         $request_uri = explode("/", $_SERVER['REDIRECT_URL']); //Get request url with leading slash removed.
         $script = explode("/", $_SERVER['SCRIPT_NAME']);
@@ -51,6 +50,11 @@ class Router
             } else {
                 $params[substr($param, 0, $pos)] = substr($param, $pos + 1);
             }
+        }
+
+        if ($request_method == "POST" && empty($params)) {
+            $payload = file_get_contents("php://input");
+            $params = json_decode($payload, true);
         }
 
         switch ($request_method) {

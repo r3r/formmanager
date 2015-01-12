@@ -1,0 +1,34 @@
+<h1> {{title}} </h1>
+<div ng-hide="fetchError == null" class="alert alert-danger alert-dismissible"
+     role="alert">{{fetchError}}
+</div>
+<div ng-hide="alertMsg == null" class="alert alert-success alert-dismissible" role="alert">
+    <button ng-click="alertMsg = null" type="button" class="close" aria-label="Close"><span
+            aria-hidden="true">&times;</span></button>
+    {{alertMsg}}
+</div>
+<h3 ng-show="!forms.length && fetchError == null">No Forms </h3>
+<h5 ng-show="!forms.length && fetchError == null"><a ng-href="#/form/create"><span
+        class="glyphicon glyphicon-pencil" aria-hidden="true"></span> Create a
+    new Form</a></h5>
+
+
+<table ng-show="forms.length" class="table table-striped  table-hover table-condensed">
+    <thead>
+    <tr>
+        <th ng-repeat="header in headers" data-field="{{header}}">{{header | uppercase}}</th>
+        <th>Controls</th>
+    </tr>
+    </thead>
+    <tr ng-repeat="form in forms">
+        <td> {{form.id}}</td>
+        <td> {{form.name}}</td>
+        <td> {{form.table_prefix}}</td>
+        <td>
+            <a ng-href="#/form/edit/{{form.id}}"><span class="glyphicon glyphicon-edit" aria-hidden="true"></span></a>
+            <button class="btn btn-danger" ng-really-message="Are you sure you want to delete {{form.name}}?"
+                    ng-really-click="delete(form)"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+            </button>
+        </td>
+    </tr>
+</table>

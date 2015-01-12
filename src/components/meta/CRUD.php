@@ -55,6 +55,8 @@ abstract class CRUD
         $res = $qBuilder->execute()->fetchAll();
         if (!empty($res)) {
             return JsonIO::emitData($res);
+        } else if ($id == NULL) {
+            return JsonIO::emitData(array());
         } else {
             if (!is_array($id)) {
                 $id = array($id);

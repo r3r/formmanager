@@ -39,7 +39,7 @@ class Form_CRUD extends CRUD
     {
         Form_CRUD::setTableParams();
         if (!isset($params['form_elements'])) {
-            return JsonIO::emitError("Error! Parameters don't contain form elements");
+            return JsonIO::emitError("Error! Parameters don't contain form elements ", json_encode($params));
         }
 
         if (!isset($params['form_name'])) {
@@ -55,15 +55,23 @@ class Form_CRUD extends CRUD
         try {
             $elements = $params['form_elements'];
             foreach ($elements as $key => $element) {
-                $elements[$key]['schema'] = JsonIO::receive(Form_ELEMENTS_CRUD::read(array("id" => $element['id'])));
+                if (isset($element['typeId'])) {
+                    $typeId = $element['typeId'];
+                } else if (is_array($element['type'])) {
+                    $typeId = $element['type']['id'];
+                }
+                if (!isset($typeId)) {
+                    return JsonIO::emitError("Invalid Form Element. Missing Id");
+                }
+                $elements[$key]['schema'] = JsonIO::receive(Form_ELEMENTS_CRUD::read(array("id" => $typeId)));
                 if ($elements[$key]['schema'] === array()) {
-                    return JsonIO::emitError("Invalid Form Element. Id " . $element['id']);
+                    return JsonIO::emitError("Invalid Form Element. Id " . $typeId);
                 }
             }
 
             /*Add to Form-List Table */
             try {
-                $db->insert(Config::$tables['FORM_LIST'], array("name" => preg_replace('/\s+/', '_', $params['form_name'])));
+                $db->insert(Config::$tables['FORM_LIST'], array("name" => Namer::sanitize($params['form_name'])));
                 $insert_id = $db->lastInsertId();
             } catch (\Exception $e) {
                 $db->rollback();
@@ -106,6 +114,7 @@ class Form_CRUD extends CRUD
                                 break;
                             }
                         }
+                        Form_CRUD::delete(array("form_id" => $insert_id, "cleanup" => 1)); //Delete any partial record persisted
                         return JsonIO::emitError("SQL Exception when creating table " . $multi_valued_tbl->getName(), $err[2], $err[1]);
                     }
 
@@ -121,6 +130,7 @@ class Form_CRUD extends CRUD
                                     break;
                                 }
                             }
+                            Form_CRUD::delete(array("form_id" => $insert_id, "cleanup" => 1)); //Delete any partial record persisted
                             return JsonIO::emitError("SQL Exception when inserting into table " . $multi_valued_tbl->getName(), $err[2], $err[1]);
                         }
                     }
@@ -146,6 +156,7 @@ class Form_CRUD extends CRUD
                                     break;
                                 }
                             }
+                            Form_CRUD::delete(array("form_id" => $insert_id, "cleanup" => 1)); //Delete any partial record persisted
                             return JsonIO::emitError("SQL Exception when creating table " . $join_tbl->getName(), $err[2], $err[1]);
                         }
 
@@ -184,6 +195,7 @@ class Form_CRUD extends CRUD
                         break;
                     }
                 }
+                Form_CRUD::delete(array("form_id" => $insert_id, "cleanup" => 1)); //Delete any partial record persisted
                 return JsonIO::emitError("SQL Exception when creating table " . $data_instance_tbl->getName(), $err[2], $err[1]);
             }
 
@@ -214,6 +226,7 @@ class Form_CRUD extends CRUD
                         break;
                     }
                 }
+                Form_CRUD::delete(array("form_id" => $insert_id, "cleanup" => 1)); //Delete any partial record persisted
                 return JsonIO::emitError("SQL Exception when creating table " . $schema_instance_tbl->getName(), $err[2], $err[1]);
             }
 
@@ -224,7 +237,7 @@ class Form_CRUD extends CRUD
                 $values['col_name'] = Namer::sanitize($element['name']);
                 $values['join_table'] = (isset($element['join_table']) ? $element['join_table'] : "");
                 $values['foreign_table'] = (isset($element['foreign_table']) ? $element['foreign_table'] : "");
-                $values['label'] = $element['label'];
+                // $values['label'] = $element['label'];
                 $values['min'] = (isset($element['min']) ? $element['min'] : -1);
                 $values['max'] = (isset($element['max']) ? $element['max'] : isset($element['options']['length']) ? $element['options']['length'] : -1);
                 $values['options'] = json_encode($element['options']);
@@ -239,6 +252,7 @@ class Form_CRUD extends CRUD
                             break;
                         }
                     }
+                    Form_CRUD::delete(array("form_id" => $insert_id, "cleanup" => 1)); //Delete any partial record persisted
                     return JsonIO::emitError("SQL Exception when inserting into table " . (Namer::getSchemaInstanceTblName($params['form_name'])));
                 }
 
@@ -263,6 +277,7 @@ class Form_CRUD extends CRUD
                         break;
                     }
                 }
+                Form_CRUD::delete(array("form_id" => $insert_id, "cleanup" => 1)); //Delete any partial record persisted
                 return JsonIO::emitError("SQL Exception when creating table " . $view_tbl->getName(), $err[2], $err[1]);
             }
 
@@ -272,6 +287,7 @@ class Form_CRUD extends CRUD
 
         } catch (Exception $e) {
             $db->rollback();
+            Form_CRUD::delete(array("form_id" => $insert_id, "cleanup" => 1)); //Delete any partial record persisted
             return JsonIO::emitError("Error Creating Form: " . $params['form_name'], $e->getMessage(), JsonIO::BAD_REQUEST);
         }
 
@@ -316,12 +332,19 @@ class Form_CRUD extends CRUD
                     } else {
                         $elements[$key]['old']['options'] = json_decode($elements[$key]['old']['options'], true); //Work Around since json-decode didn't do it recursively
                     }
-
-
                 }
-                $elements[$key]['schema'] = JsonIO::receive(Form_ELEMENTS_CRUD::read(array("id" => $element['id'])));
+
+                if (isset($element['typeId'])) {
+                    $typeId = $element['typeId'];
+                } else if (is_array($element['type'])) {
+                    $typeId = $element['type']['id'];
+                }
+                if (!isset($typeId)) {
+                    return JsonIO::emitError("Invalid Form Element. Missing Id");
+                }
+                $elements[$key]['schema'] = JsonIO::receive(Form_ELEMENTS_CRUD::read(array("id" => $typeId)));
                 if ($elements[$key]['schema'] === array()) {
-                    return JsonIO::emitError("Invalid Form Element. Id " . $element['id']);
+                    return JsonIO::emitError("Invalid Form Element. Id " . $typeId);
                 }
             }
 
@@ -508,7 +531,12 @@ class Form_CRUD extends CRUD
         try {
             $existingForm = JsonIO::receive(Form_CRUD::read(array("id" => $params['form_id'])));
             if ($existingForm === array()) {
-                return JsonIO::emitError("Invalid Form Id. Id " . $params['form_id']);
+                if (!isset($params['cleanup'])) {
+                    return JsonIO::emitError("Invalid Form Id. Id " . $params['form_id']);
+                } else {
+                    return;
+                }
+
             }
             $sm = $db->getSchemaManager();
             $fromSchema = $sm->createSchema();
@@ -516,18 +544,23 @@ class Form_CRUD extends CRUD
 
             $toSchema->dropTable(Namer::getViewTblName($existingForm['name']));
             $view_tbl = JsonIO::receive(View_CRUD::read(array("table_name" => Namer::getViewTblName($existingForm['name']))));
-            foreach ($view_tbl as $view) {
-                $toSchema->dropTable($view['view_table']);
+            if (!empty($view_tbl)) {
+                foreach ($view_tbl as $view) {
+                    $toSchema->dropTable($view['view_table']);
+                }
             }
 
             $toSchema->dropTable(Namer::getSchemaInstanceTblName($existingForm['name']));
             $schema_tbl = JsonIO::receive(Schema_CRUD::read(array("table_name" => Namer::getSchemaInstanceTblName($existingForm['name']))));
-            foreach ($schema_tbl as $col) {
-                if ($col['join_table'] != "") {
-                    $toSchema->dropTable($col['join_table']);
-                }
-                if ($col['foreign_table'] != "") {
-                    $toSchema->dropTable($col['foreign_table']);
+
+            if (!empty($schema_tbl)) {
+                foreach ($schema_tbl as $col) {
+                    if (isset($col['join_table']) && $col['join_table'] != "") {
+                        $toSchema->dropTable($col['join_table']);
+                    }
+                    if (isset($col['foreign_table']) && $col['foreign_table'] != "") {
+                        $toSchema->dropTable($col['foreign_table']);
+                    }
                 }
             }
 
@@ -573,7 +606,7 @@ class Form_CRUD extends CRUD
             if (isset($params['save_data']) && $params['save_data'] == 0) {
                 $details['additional'] = "Data Preserved in table " . Namer::getDataInstanceTblName($existingForm['name']);
             }
-            return JsonIO::emitSuccess("Successfully Deleted form " . $params['form_name'], $details);
+            return JsonIO::emitSuccess("Successfully Deleted form " . $existingForm['id'], $details);
 
 
         } catch (\Exception $e) {

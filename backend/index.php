@@ -10,6 +10,9 @@ require_once("../vendor/autoload.php"); #set-up autoloader
 define('WEB_ROOT', getcwd());
 use app\includes\Router;
 
+error_reporting(E_ALL);
+
+
 $router = new Router();
 $output = $router->match();
 $arr = json_decode($output, true);
