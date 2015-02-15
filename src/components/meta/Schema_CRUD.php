@@ -24,4 +24,25 @@ class Schema_CRUD extends CRUD
         return parent::read($params);
     }
 
+    public static function public_filter($schema)
+    {
+
+        $privateFields = ["elementId",
+
+            "options",
+            "join_table",
+            "foreign_table"];
+
+        foreach ($privateFields as $privateField) {
+            if (isset($schema[$privateField])) {
+                unset($schema[$privateField]);
+            }
+        }
+
+
+        return $schema;
+
+
+    }
+
 } 

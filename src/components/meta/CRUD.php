@@ -17,7 +17,7 @@ abstract class CRUD
     protected static $_table = NULL;
     protected static $_alias = NULL;
 
-    public static function read($params)
+    protected static function read($params)
     {
         $id = NULL;
         if (isset($params['id'])) {
@@ -68,7 +68,7 @@ abstract class CRUD
 
     }
 
-    public static function create($params)
+    protected static function create($params)
     {
         if (!isset($params['form_elements'])) {
             return JsonIO::emitError("Error! Parameters don't contain form elements");
@@ -80,12 +80,12 @@ abstract class CRUD
             $elementIds)));
     }
 
-    public static function update($params)
+    protected static function update($params)
     {
 
     }
 
-    public static function delete($params)
+    protected static function delete($params)
     {
 
     }

@@ -30,7 +30,36 @@ class Form_CRUD extends CRUD
     public static function read($params)
     {
         Form_CRUD::setTableParams();
-        return parent::read($params);
+        $parent = parent::read($params);
+        $decoded = JsonIO::receive($parent);
+        if ($decoded === FALSE) {
+            return $parent;
+        }
+
+        //Append Schema Data as Well
+        $db = DB_Conn::getDbConn();
+        if (!isset($decoded['name'])) { //Has multiple forms
+            foreach ($decoded as $key => $form) {
+                $qBuilder = $db->createQueryBuilder();
+                $qBuilder
+                    ->select('*')
+                    ->from(Namer::getSchemaInstanceTblName($form['name']), "sc");
+                $schema = $qBuilder->execute()->fetchAll();
+
+                $decoded[$key]['schema'] = $schema;
+            }
+            return JsonIO::emitData($decoded);
+        } else {
+            $qBuilder = $db->createQueryBuilder();
+            $qBuilder
+                ->select('*')
+                ->from(Namer::getSchemaInstanceTblName($decoded['name']), "sc");
+            $schema = $qBuilder->execute()->fetchAll();
+            //$filtered_schema = array_map("\\src\\components\\meta\\Schema_CRUD::public_filter", $schema);
+            $decoded['schema'] = $schema;
+            return JsonIO::emitData($decoded);
+        }
+
 
     }
 
@@ -237,7 +266,7 @@ class Form_CRUD extends CRUD
                 $values['col_name'] = Namer::sanitize($element['name']);
                 $values['join_table'] = (isset($element['join_table']) ? $element['join_table'] : "");
                 $values['foreign_table'] = (isset($element['foreign_table']) ? $element['foreign_table'] : "");
-                // $values['label'] = $element['label'];
+                $values['label'] = isset($element['label']) ? $element['label'] : "";
                 $values['min'] = (isset($element['min']) ? $element['min'] : -1);
                 $values['max'] = (isset($element['max']) ? $element['max'] : isset($element['options']['length']) ? $element['options']['length'] : -1);
                 $values['options'] = json_encode($element['options']);

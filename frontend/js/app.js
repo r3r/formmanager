@@ -21,6 +21,10 @@ formManagerApp.config(['$routeProvider', function ($routeProvider) {
             templateUrl: 'assets/partials/form/createView.html',
             controller: 'FormCreateCtrl'
         }).
+        when('/form/edit/:id', {
+            templateUrl: 'assets/partials/form/editView.html',
+            controller: 'FormEditCtrl'
+        }).
         when('/formelements/view', {
             templateUrl: 'assets/partials/formelements/listView.html',
             controller: 'FormElementsListCtrl'

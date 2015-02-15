@@ -5,7 +5,7 @@
     {{fetchError}}
 </div>
 
-<form name="createForm">
+<form name="editForm">
     <div class="form-group">
         <br/>
         <input type="text" ng-model="form_name" id="form_name" placeholder="Form Name" required="required">
@@ -45,7 +45,7 @@
 
     </table>
     <button type="submit" class="btn btn-primary" ng-click="submit(form_name, elementInstances)"
-            ng-disabled="createForm.$invalid || elementInstances.length == 0">Create the Form!
+            ng-disabled="editForm.$invalid || elementInstances.length == 0">Create the Form!
     </button>
 </form>
 <br/>

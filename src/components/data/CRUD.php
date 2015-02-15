@@ -9,11 +9,12 @@
 namespace src\components\data;
 
 
+use app\config\Config;
 use app\includes\JsonIO;
 use src\components\db\DB_Conn;
 use src\components\utils\Namer;
 
-class CRUDS
+class CRUD
 {
     protected static $_data_table = NULL;
     protected static $_schema_table = NULL;
@@ -41,14 +42,30 @@ class CRUDS
         $qBuilder = $db->createQueryBuilder();
         $qBuilder
             ->select('*')
-            ->from(self::$_schema_table, self::$_schema_alias);
-
+            ->from(self::$_schema_table, self::$_schema_alias)
+            ->innerJoin(self::$_schema_alias, Config::$tables['FORM_ELEMENTS'], 'r', "r.id=" . self::$_schema_alias . ".elementId");
         $columns = $qBuilder->execute()->fetchAll();
+
+
+        if (isset($params['structure_only'])) { //If form structure required for create/update purposes without data
+            foreach ($columns as $key => $column) {
+                $columns[$key]['options'] = json_decode($column['options'], true); //to decode json_encoded options
+                if ($column['foreign_table'] != "") {
+                    $qBuilder = $db->createQueryBuilder();
+                    $qBuilder
+                        ->select('*')
+                        ->from($column['foreign_table'], "l");
+                    $columns[$key]["values"] = $qBuilder->execute()->fetchAll();
+                }
+            }
+            return JsonIO::emitData(array("columns" => $columns)); //return before fetching data
+        }
+
         $simpleFields = array('id');
         $singleChoiceFields = array();
         $multiChoicedFields = array();
         foreach ($columns as $key => $column) {
-            $columns[$key]['options'] = json_decode($column['options']); //to decode json_encoded options
+            $columns[$key]['options'] = json_decode($column['options'], true); //to decode json_encoded options
             if ($column['join_table'] == '' && $column['foreign_table'] == '') {
                 $simpleFields[] = $column['col_name'];
             }
@@ -67,6 +84,15 @@ class CRUDS
         $qBuilder
             ->select($simpleFields)
             ->from(self::$_data_table, self::$_data_alias);
+
+        //Implementing Paging
+        if (isset($params['offset']) && is_int($params['offset'])) {
+            $qBuilder->setFirstResult($params['offset']);
+        }
+        if (isset($params['limit']) && is_int($params['limit'])) {
+            $qBuilder->setMaxResults($params['limit']);
+        }
+
         $rows = $qBuilder->execute()->fetchAll();
 
         $choicedRows = array();
@@ -123,9 +149,8 @@ class CRUDS
 
 
         //package data + schema and send it out
-
-        $result = array("columns" => $columns, "rows" => $rows);
+        $filtered_columns = array_map("\\src\\components\\meta\\Schema_CRUD::public_filter", $columns);
+        $result = array("columns" => $filtered_columns, "rows" => $rows);
         return JsonIO::emitData($result);
-
     }
 } 
